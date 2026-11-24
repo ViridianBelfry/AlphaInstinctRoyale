@@ -13,6 +13,10 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Manages the client-side matchmaking session, including SignalR connection state,
+/// queue join/leave requests, heartbeat renewal, reconnect handling, and simple queue status UI.
+/// </summary>
 public class MatchmakerClient : MonoBehaviour
 {
     private static MatchmakerClient _activeQueueInstance;
@@ -57,7 +61,14 @@ public class MatchmakerClient : MonoBehaviour
     private TimeSpan _queueElapsedBeforeCurrentRun = TimeSpan.Zero;
     private DateTime _queueTimerStartedUtc = DateTime.MinValue;
     private bool _queueTimerRunning;
+    /// <summary>
+    /// Gets the server-issued join time for the current or most recent active queue session.
+    /// </summary>
     public DateTime QueueJoinedUtc { get; private set; } = DateTime.MinValue;
+
+    /// <summary>
+    /// Gets the total observed queue duration for the active session, accounting for pause/resume around reconnects.
+    /// </summary>
     public TimeSpan QueueTimeElapsed
     {
         get
@@ -71,9 +82,24 @@ public class MatchmakerClient : MonoBehaviour
             return _queueElapsedBeforeCurrentRun + (DateTime.UtcNow - _queueTimerStartedUtc);
         }
     }
+    /// <summary>
+    /// Gets whether the client currently considers itself queued with the matchmaking service.
+    /// </summary>
     public bool IsQueued => _queued;
+
+    /// <summary>
+    /// Gets whether a queue session has been established and has timing information.
+    /// </summary>
     public bool HasQueueSession => QueueJoinedUtc != DateTime.MinValue;
+
+    /// <summary>
+    /// Gets whether the local queue timer is actively advancing.
+    /// </summary>
     public bool IsQueueTimerRunning => _queueTimerRunning;
+
+    /// <summary>
+    /// Gets the instance currently responsible for the active queue session, if any.
+    /// </summary>
     public static MatchmakerClient ActiveQueueInstance => _activeQueueInstance;
 
     void Awake()
@@ -102,6 +128,9 @@ public class MatchmakerClient : MonoBehaviour
     }
 
     // ---- Public API ----
+    /// <summary>
+    /// Starts a matchmaking join attempt using the configured queue settings.
+    /// </summary>
     public void JoinMatchmaking()
     {
         _shouldRequeueOnReconnect = false;
@@ -126,6 +155,9 @@ public class MatchmakerClient : MonoBehaviour
         _ = JoinViaSignalRAsync();
     }
 
+    /// <summary>
+    /// Leaves the current matchmaking queue session if one exists.
+    /// </summary>
     public void LeaveMatchmaking()
     {
         _shouldRequeueOnReconnect = false;

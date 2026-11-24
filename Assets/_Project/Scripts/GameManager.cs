@@ -5,6 +5,10 @@ using System.Linq;
 using AIR.Shared.GameSession;
 using CardSystem;
 
+/// <summary>
+/// Owns the local match runner lifecycle, publishes match snapshots to scene systems,
+/// and keeps the basic gameplay HUD synchronized with the active match state.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     public const string LocalPlayerId = "local-player";
@@ -33,10 +37,29 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI roundText;
     public TextMeshProUGUI fieldCountText;
 
+    /// <summary>
+    /// Gets the local match runner that simulates the current session.
+    /// </summary>
     public MatchRunner MatchRunner => Runner;
+
+    /// <summary>
+    /// Gets the authority client used by scene systems to submit commands and read snapshots.
+    /// </summary>
     public IMatchAuthorityClient AuthorityClient => authorityClient;
+
+    /// <summary>
+    /// Gets the most recent snapshot published by the match authority client.
+    /// </summary>
     public MatchSnapshot CurrentSnapshot => authorityClient?.CurrentSnapshot;
+
+    /// <summary>
+    /// Raised whenever a fresh snapshot is available for presentation systems.
+    /// </summary>
     public event Action<MatchSnapshot> SnapshotUpdated;
+
+    /// <summary>
+    /// Gets the local player's current gold total, or the configured starting amount before a snapshot exists.
+    /// </summary>
     public int gold => GetLocalPlayerSnapshot()?.Economy?.Gold ?? startGold;
 
     void Awake()
@@ -78,6 +101,9 @@ public class GameManager : MonoBehaviour
         }));
     }
 
+    /// <summary>
+    /// Refreshes the HUD elements that present local economy, round, and field occupancy.
+    /// </summary>
     public void UpdateUI()
     {
         if (goldText != null)
@@ -133,6 +159,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Notifies the music director that the presented match has entered battle.
+    /// </summary>
     public void NotifyLocalBattleStarted()
     {
         if (musicDirector != null)
@@ -141,6 +170,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Notifies the music director that the presented match has exited battle.
+    /// </summary>
     public void NotifyLocalBattleEnded()
     {
         if (musicDirector != null)
@@ -231,6 +263,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Retrieves the local player's view from the latest published match snapshot.
+    /// </summary>
     public PlayerSnapshot GetLocalPlayerSnapshot()
     {
         return CurrentSnapshot?.GetPlayer(LocalPlayerId);
@@ -304,6 +339,9 @@ public class GameManager : MonoBehaviour
     }
 }
 
+/// <summary>
+/// Abstraction over the component that accepts match commands and exposes viewer-specific snapshots.
+/// </summary>
 public interface IMatchAuthorityClient
 {
     MatchSnapshot CurrentSnapshot { get; }
@@ -312,6 +350,9 @@ public interface IMatchAuthorityClient
     void RefreshSnapshot();
 }
 
+/// <summary>
+/// Local in-process authority client that fronts a <see cref="MatchRunner"/> for offline gameplay and debugging.
+/// </summary>
 public sealed class LocalMatchAuthorityClient : IMatchAuthorityClient
 {
     private readonly MatchRunner runner;

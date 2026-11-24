@@ -8,6 +8,9 @@ using Slider = UnityEngine.UIElements.Slider;
 using Toggle = UnityEngine.UIElements.Toggle;
 using Button = UnityEngine.UIElements.Button;
 
+/// <summary>
+/// Represents an item that can render or open a pause-menu navigation entry.
+/// </summary>
 public interface IMenuItem
 {
     string Id { get; }
@@ -17,6 +20,9 @@ public interface IMenuItem
     void OnClick(VisualElement parentLayer, VisualElement nextLayer, int tier);
 }
 
+/// <summary>
+/// Represents a configurable setting control that can build UI and apply or discard pending values.
+/// </summary>
 public interface ISettingItem
 {
     VisualElement Build();
@@ -24,6 +30,9 @@ public interface ISettingItem
     void Discard();
 }
 
+/// <summary>
+/// Represents a settings page that can report unsaved state and produce its UI content.
+/// </summary>
 public interface ISettingsPage
 {
     bool HasPendingChanges { get; }
@@ -85,6 +94,9 @@ public class Submenu : IMenuItem
     // Submenu does not represent a settings page so no Build implementation
 }
 
+/// <summary>
+/// Leaf navigation item that runs an action, optionally prompting about unsaved settings first.
+/// </summary>
 public class LeafMenuItem : IMenuItem
 {
     public string Id { get; }
@@ -115,6 +127,10 @@ public class LeafMenuItem : IMenuItem
     }
 }
 
+/// <summary>
+/// Settings-page menu item that groups setting controls, tracks pending changes,
+/// and coordinates apply/discard behavior with the pause menu modal flow.
+/// </summary>
 public class GroupContainerMenuItem : IMenuItem, ISettingsPage
 {
     public string Id { get; }
@@ -234,6 +250,9 @@ public class GroupContainerMenuItem : IMenuItem, ISettingsPage
     }
 }
 
+/// <summary>
+/// Boolean settings control backed by a UI Toolkit toggle.
+/// </summary>
 public class ToggleSetting : ISettingItem
 {
     private readonly UIStringKey? labelKey;
@@ -304,6 +323,9 @@ public class ToggleSetting : ISettingItem
     }
 }
 
+/// <summary>
+/// Choice-based settings control backed by a UI Toolkit dropdown field.
+/// </summary>
 public class DropdownSetting : ISettingItem
 {
     private readonly UIStringKey? labelKey;
@@ -390,6 +412,9 @@ public class DropdownSetting : ISettingItem
     }
 }
 
+/// <summary>
+/// Numeric settings control backed by a UI Toolkit slider.
+/// </summary>
 public class SliderSetting : ISettingItem
 {
     private readonly UIStringKey? labelKey;
@@ -465,6 +490,9 @@ public class SliderSetting : ISettingItem
     }
 }
 
+/// <summary>
+/// Helper methods used to build and animate layered pause-menu columns.
+/// </summary>
 public static class UIUtils
 {
     public static VisualElement CreateOrGetLayerColumn(VisualElement currentLayer, int tier)

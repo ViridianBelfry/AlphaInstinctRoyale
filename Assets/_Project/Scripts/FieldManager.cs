@@ -5,6 +5,10 @@ using UnityEngine;
 using AIR.Shared.GameSession;
 
 [DisallowMultipleComponent]
+/// <summary>
+/// Renders battlefield unit visuals from match snapshots, including movement, facing,
+/// health presentation, and transient combat feedback such as damage and KO labels.
+/// </summary>
 public class FieldManager : MonoBehaviour
 {
     private sealed class CombatLabelState
